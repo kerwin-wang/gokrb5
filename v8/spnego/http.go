@@ -90,12 +90,10 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 	//	//teeRC := teeReadCloser{teeR, req.Body}
 	//	//req.Body = teeRC
 	//}
-	log.New(os.Stdout, "this is hank :", log.LstdFlags)
-	fmt.Println("this is hank do ")
 	var body []byte
 	if req.Body != nil {
 		// Use a tee reader to capture any body sent in case we have to replay it again
-		body, _ := ioutil.ReadAll(req.Body)
+		body, _ = ioutil.ReadAll(req.Body)
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	}
 	resp, err = c.Client.Do(req)
