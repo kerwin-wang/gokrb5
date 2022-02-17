@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/jcmturner/gofork/encoding/asn1"
@@ -88,6 +90,8 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 	//	//teeRC := teeReadCloser{teeR, req.Body}
 	//	//req.Body = teeRC
 	//}
+	log.New(os.Stdout, "this is hank :", log.LstdFlags)
+	fmt.Println("this is hank do ")
 	var body []byte
 	if req.Body != nil {
 		// Use a tee reader to capture any body sent in case we have to replay it again
