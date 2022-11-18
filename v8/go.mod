@@ -10,6 +10,7 @@ require (
 	github.com/jcmturner/gofork v1.0.0
 	github.com/jcmturner/goidentity/v6 v6.0.1
 	github.com/jcmturner/rpc/v2 v2.0.3
-	github.com/stretchr/testify v1.6.1
+	github.com/sirupsen/logrus v1.9.0
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20201112155050-0c6587e931a9
 )
