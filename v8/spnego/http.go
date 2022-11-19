@@ -89,7 +89,6 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 	//	//teeRC := teeReadCloser{teeR, req.Body}
 	//	//req.Body = teeRC
 	//}
-	logrus.Infof("begin start do request, req: %+v", req)
 	err = SetSPNEGOHeader(c.krb5Client, req, c.spn)
 	if err != nil {
 		logrus.Errorf("SetSPNEGOHeader error: %+v", err)
@@ -120,7 +119,9 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 				return c.Do(e.reqTarget)
 			}
 		}
-		logrus.Errorf("c.Client.Do error: %+v", err)
+		if err != nil {
+			logrus.Errorf("c.Client.Do error: %+v", err)
+		}
 		return resp, err
 	}
 	if respUnauthorizedNegotiate(resp) {
@@ -132,6 +133,9 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 		io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
 		return c.Do(req)
+	}
+	if err != nil {
+		logrus.Errorf("the end error: %+v", err)
 	}
 	return resp, err
 }
