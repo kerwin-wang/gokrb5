@@ -89,7 +89,11 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 		teeRC := teeReadCloser{teeR, req.Body}
 		req.Body = teeRC
 	}
-
+	err = SetSPNEGOHeader(c.krb5Client, req, c.spn)
+	if err != nil {
+		logrus.Errorf("SetSPNEGOHeader error: %+v", err)
+		return resp, err
+	}
 	//var body []byte
 	//if req.Body != nil {
 	//	// Use a tee reader to capture any body sent in case we have to replay it again
@@ -121,11 +125,7 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 		return resp, err
 	}
 	if respUnauthorizedNegotiate(resp) {
-		err = SetSPNEGOHeader(c.krb5Client, req, c.spn)
-		if err != nil {
-			logrus.Errorf("SetSPNEGOHeader error: %+v", err)
-			return resp, err
-		}
+
 		if req.Body != nil {
 			// Refresh the body reader so the body can be sent again
 			io.Copy(ioutil.Discard, req.Body)
