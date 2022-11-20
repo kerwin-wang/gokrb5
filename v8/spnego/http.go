@@ -82,20 +82,20 @@ func NewClient(krb5Cl *client.Client, httpCl *http.Client, spn string) *Client {
 
 // Do is the SPNEGO enabled HTTP client's equivalent of the http.Client's Do method.
 func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
-	//var body bytes.Buffer
-	//if req.Body != nil {
-	//	// Use a tee reader to capture any body sent in case we have to replay it again
-	//	//teeR := io.TeeReader(req.Body, &body)
-	//	//teeRC := teeReadCloser{teeR, req.Body}
-	//	//req.Body = teeRC
-	//}
-
-	var body []byte
+	var body bytes.Buffer
 	if req.Body != nil {
 		// Use a tee reader to capture any body sent in case we have to replay it again
-		body, _ = ioutil.ReadAll(req.Body)
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		teeR := io.TeeReader(req.Body, &body)
+		teeRC := teeReadCloser{teeR, req.Body}
+		req.Body = teeRC
 	}
+
+	//var body []byte
+	//if req.Body != nil {
+	//	// Use a tee reader to capture any body sent in case we have to replay it again
+	//	body, _ = ioutil.ReadAll(req.Body)
+	//	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	//}
 	resp, err = c.Client.Do(req)
 	if err != nil {
 		if ue, ok := err.(*url.Error); ok {
@@ -108,8 +108,9 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 				}
 				if req.Body != nil {
 					// Refresh the body reader so the body can be sent again
-					//e.reqTarget.Body = ioutil.NopCloser(&body)
-					e.reqTarget.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+					io.Copy(ioutil.Discard, req.Body)
+					e.reqTarget.Body = ioutil.NopCloser(&body)
+					//e.reqTarget.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 				}
 				return c.Do(e.reqTarget)
 			}
@@ -127,8 +128,9 @@ func (c *Client) Do(req *http.Request) (resp *http.Response, err error) {
 		}
 		if req.Body != nil {
 			// Refresh the body reader so the body can be sent again
-			//req.Body = ioutil.NopCloser(&body)
-			req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+			io.Copy(ioutil.Discard, req.Body)
+			req.Body = ioutil.NopCloser(&body)
+			//req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		}
 		io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
